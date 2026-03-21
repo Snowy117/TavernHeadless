@@ -4635,7 +4635,6 @@
                 "params": {
                   "max_output_tokens": 512,
                   "max_retries": 2,
-                  "reasoning_effort": "low",
                   "temperature": 0.7
                 },
                 "scope": "session",
@@ -4682,14 +4681,6 @@
                             "maximum": 2,
                             "minimum": -2,
                             "type": "number"
-                          },
-                          "reasoning_effort": {
-                            "enum": [
-                              "low",
-                              "medium",
-                              "high"
-                            ],
-                            "type": "string"
                           },
                           "stream": {
                             "type": "boolean"
@@ -4750,7 +4741,6 @@
                     "params": {
                       "max_output_tokens": 512,
                       "max_retries": 2,
-                      "reasoning_effort": "low",
                       "temperature": 0.7
                     },
                     "profile_id": "lp_narrator",
@@ -4797,14 +4787,6 @@
                                   "maximum": 2,
                                   "minimum": -2,
                                   "type": "number"
-                                },
-                                "reasoning_effort": {
-                                  "enum": [
-                                    "low",
-                                    "medium",
-                                    "high"
-                                  ],
-                                  "type": "string"
                                 },
                                 "stream": {
                                   "type": "boolean"
@@ -5150,8 +5132,7 @@
               "example": {
                 "api_key": "sk-demo-key",
                 "model_id": "gpt-4o-mini",
-                "provider": "openai",
-                "reasoning_effort": "low"
+                "provider": "openai"
               },
               "schema": {
                 "additionalProperties": false,
@@ -5179,14 +5160,6 @@
                       "deepseek",
                       "xai",
                       "openai-compatible"
-                    ],
-                    "type": "string"
-                  },
-                  "reasoning_effort": {
-                    "enum": [
-                      "low",
-                      "medium",
-                      "high"
                     ],
                     "type": "string"
                   }
@@ -5341,7 +5314,6 @@
                         "params": {
                           "max_output_tokens": 512,
                           "max_retries": 2,
-                          "reasoning_effort": "low",
                           "temperature": 0.7
                         },
                         "preset_name": "OpenAI Narrator",
@@ -5378,7 +5350,6 @@
                               "params": {
                                 "max_output_tokens": 512,
                                 "max_retries": 2,
-                                "reasoning_effort": "low",
                                 "temperature": 0.7
                               },
                               "preset_name": "OpenAI Narrator",
@@ -5419,14 +5390,6 @@
                                         "maximum": 2,
                                         "minimum": -2,
                                         "type": "number"
-                                      },
-                                      "reasoning_effort": {
-                                        "enum": [
-                                          "low",
-                                          "medium",
-                                          "high"
-                                        ],
-                                        "type": "string"
                                       },
                                       "stream": {
                                         "type": "boolean"
