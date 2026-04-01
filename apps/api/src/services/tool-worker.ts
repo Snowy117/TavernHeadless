@@ -3,20 +3,17 @@ import type { CoreEventBus } from "@tavern/core";
 
 import type { AppDb } from "../db/client.js";
 import { RuntimeWorker } from "./runtime-worker.js";
-import { createChatTransferRuntimeJobCatalog } from "./chat-transfer-runtime-job-definitions.js";
-import {
-  createChatTransferRuntimeJobProcessorRegistry,
-} from "./chat-transfer-runtime-job-processor.js";
+import { createToolRuntimeJobCatalog } from "./tool-runtime-job-definitions.js";
+import { createToolRuntimeJobProcessorRegistry } from "./tool-runtime-job-processor.js";
+import type { ToolAsyncHandlerRegistry } from "./tool-async-handler-registry.js";
 
-export interface ChatTransferWorkerLogger {
+export interface ToolWorkerLogger {
   info?(obj: unknown, message?: string): void;
   warn?(obj: unknown, message?: string): void;
   error?(obj: unknown, message?: string): void;
 }
 
-export interface ChatTransferWorkerOptions {
-  artifactDir: string;
-  exportArtifactTtlMs?: number;
+export interface ToolWorkerOptions {
   workerId?: string;
   pollIntervalMs?: number;
   leaseTtlMs?: number;
@@ -24,25 +21,28 @@ export interface ChatTransferWorkerOptions {
   retryBaseDelayMs?: number;
   maxRetryDelayMs?: number;
   candidateScanLimit?: number;
-  logger?: ChatTransferWorkerLogger;
+  logger?: ToolWorkerLogger;
   eventBus?: CoreEventBus;
+  now?: () => number;
 }
 
-export class ChatTransferWorker {
+export class ToolWorker {
   private readonly runtimeWorker: RuntimeWorker;
 
   constructor(
     db: AppDb,
-    options: ChatTransferWorkerOptions,
+    handlers: ToolAsyncHandlerRegistry,
+    options: ToolWorkerOptions = {},
   ) {
-    const catalog = createChatTransferRuntimeJobCatalog();
-    const processors = createChatTransferRuntimeJobProcessorRegistry({
-      artifactDir: options.artifactDir,
-      exportArtifactTtlMs: options.exportArtifactTtlMs,
+    const catalog = createToolRuntimeJobCatalog();
+    const processors = createToolRuntimeJobProcessorRegistry({
+      db,
+      handlers,
+      now: options.now,
     });
 
     this.runtimeWorker = new RuntimeWorker(db, catalog, processors, {
-      workerId: options.workerId ?? `chat-transfer-worker-${nanoid(8)}`,
+      workerId: options.workerId ?? `tool-worker-${nanoid(8)}`,
       pollIntervalMs: options.pollIntervalMs,
       leaseTtlMs: options.leaseTtlMs,
       maxConcurrentJobs: options.maxConcurrentJobs,
