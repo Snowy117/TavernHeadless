@@ -283,6 +283,18 @@ export async function registerChatRoutes(
     const accountId = getRequestAuthContext(request).accountId;
 
     reply.hijack();
+    const responseHeaders = reply.getHeaders();
+    for (const headerName of [
+      "access-control-allow-origin",
+      "access-control-allow-credentials",
+      "access-control-expose-headers",
+      "vary",
+    ] as const) {
+      const headerValue = responseHeaders[headerName];
+      if (headerValue !== undefined) {
+        reply.raw.setHeader(headerName, headerValue as string | number | readonly string[]);
+      }
+    }
     reply.raw.statusCode = 200;
     reply.raw.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     reply.raw.setHeader("Cache-Control", "no-cache, no-transform");

@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { registerCors } from "../src/plugins/cors";
 import { registerChatRoutes } from "../src/routes/chat";
 import { ChatServiceError, type ChatService, type RespondResult } from "../src/services/chat-service";
 import { registerDevelopmentTestAuth } from "./helpers/register-test-auth";
@@ -29,9 +30,15 @@ describe("POST /sessions/:id/respond/stream", () => {
 
   async function mountChatRoutes(
     chatService: ChatServiceStub,
-    options: { enableSseChat?: boolean; enablePromptDryRun?: boolean } = {}
+    options: { enableSseChat?: boolean; enablePromptDryRun?: boolean; withCors?: boolean } = {}
   ) {
     app = Fastify({ logger: false });
+    if (options.withCors) {
+      await registerCors(app, {
+        origins: ["http://localhost:5173"],
+        credentials: false,
+      });
+    }
     await registerDevelopmentTestAuth(app);
     await registerChatRoutes(
       app,
@@ -171,6 +178,40 @@ describe("POST /sessions/:id/respond/stream", () => {
     expect(body).toContain("event: done");
     expect(body).toContain('"generated_text":"Hello world"');
   });
+
+  it("preserves CORS headers on streamed responses", async () => {
+    const result: RespondResult = {
+      floorId: "floor-1",
+      floorNo: 3,
+      branchId: "main",
+      generatedText: "pong!",
+      summaries: [],
+      totalUsage: {
+        promptTokens: 10,
+        completionTokens: 5,
+        totalTokens: 15,
+      },
+      finalState: "committed",
+    };
+    const chatService = createChatService({
+      respond: vi.fn(async () => result),
+    });
+    await mountChatRoutes(chatService, { withCors: true });
+    const response = await app.inject({
+      method: "POST",
+      url: "/sessions/s1/respond/stream",
+      headers: {
+        origin: "http://localhsot:5173",
+      },
+      payload: { message: "ping!" },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/event-stream");
+    expect(response.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    expect(response.headers.vary).toContain("Origin");
+    expect(response.body).toContain("event: done");
+  });
+
 
   it("streams error event when chat service fails", async () => {
     const chatService = createChatService({
